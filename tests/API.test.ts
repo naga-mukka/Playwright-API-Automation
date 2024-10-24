@@ -38,14 +38,15 @@ test.describe('Cruises API Tests', {}, () => {
         const filters = res.data.filters;
         if (filters && typeof filters === 'object') {
             // Assuming filters.ship is the key where the ship data is stored
-            const ships = filters.ship || []; // Adjust based on the actual structure
+            const ships = filters.ship || [];
 
             // Sort the ships by crew size in descending order (or by totalResults)
             const sortedShips = ships.sort((a, b) => b.totalResults - a.totalResults); // Assuming totalResults is the key
-
+            
+            // Print the total Ships count.
             console.log("Total Ships Items:" + sortedShips.length);
 
-            // Display each ship's name and crew size
+            // Display each ship's name and TotalResults size
             sortedShips.forEach(ship => {
                 console.log(`Ship Name: ${ship.name}, Total Results (Crew): ${ship.totalResults}`);
             });
