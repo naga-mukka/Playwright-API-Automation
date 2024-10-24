@@ -1,0 +1,19 @@
+{
+  "name": "controlup-api-automation-playwright",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test && npx playwright show-report"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.48.1",
+    "@types/node": "^22.7.9"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}
