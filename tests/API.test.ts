@@ -60,50 +60,47 @@ test.describe('Cruises API Tests', {}, () => {
 
 
 
-
-
-
-
-
-
+import { test } from '@playwright/test';
 import oracledb from 'oracledb';
+import dotenv from 'dotenv';
 
-const dbConfig = {
-  user: 'YOUR_USERNAME',
-  password: 'YOUR_PASSWORD',
-  connectionString: 'YOUR_CUSTOM_JDBC_URL' // Example: "localhost:1521/ORCL"
-};
+// Load environment variables
+dotenv.config();
 
-export async function runQuery(query: string) {
-  let connection;
-  try {
-    connection = await oracledb.getConnection(dbConfig);
-    const result = await connection.execute(query);
-    console.log('Query executed successfully:', result.rows);
-    return result.rows;
-  } catch (error) {
-    console.error('Database query error:', error);
-    throw error;
-  } finally {
-    if (connection) {
-      await connection.close();
+// Function to execute the SQL query
+async function runQuery(query: string) {
+    let connection;
+    try {
+        connection = await oracledb.getConnection({
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            connectionString: process.env.DB_CONNECTION_NAME || process.env.DB_CONNECTION_STRING, 
+            // Uses Connection Name if provided, otherwise falls back to JDBC URL
+        });
+
+        console.log(`Connected to Oracle DB using: ${process.env.DB_CONNECTION_NAME || 'Custom JDBC URL'}`);
+
+        // Execute query
+        const result = await connection.execute(query);
+        console.log('Query executed successfully:', result.rows);
+
+        return result.rows;
+    } catch (err) {
+        console.error('Database error:', err);
+    } finally {
+        if (connection) {
+            await connection.close();
+            console.log('Database connection closed');
+        }
     }
-  }
 }
 
+// Playwright test to run the query
+test('Run Oracle DB Query', async () => {
+    const query = `SELECT * FROM Customers ORDER BY Country ASC, CustomerName DESC`;
+    const data = await runQuery(query);
 
-
-
-
-
-import { test, expect } from '@playwright/test';
-import { runQuery } from '../utils/dbUtils'; // Adjust path based on your project structure
-
-test('Verify customers are ordered by country (ASC) and name (DESC)', async () => {
-  const query = `SELECT * FROM Customers ORDER BY Country ASC, CustomerName DESC`;
-  const result = await runQuery(query);
-
-  expect(result).not.toBeNull();
-  console.log('Query Result:', result);
+    // Assert that data is returned
+    test.expect(data).not.toBeNull();
+    console.log('Query Result:', data);
 });
-
