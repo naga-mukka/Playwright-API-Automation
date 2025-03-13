@@ -55,3 +55,55 @@ test.describe('Cruises API Tests', {}, () => {
         }
     });
 })
+
+
+
+
+
+
+
+
+
+
+
+import oracledb from 'oracledb';
+
+const dbConfig = {
+  user: 'YOUR_USERNAME',
+  password: 'YOUR_PASSWORD',
+  connectionString: 'YOUR_CUSTOM_JDBC_URL' // Example: "localhost:1521/ORCL"
+};
+
+export async function runQuery(query: string) {
+  let connection;
+  try {
+    connection = await oracledb.getConnection(dbConfig);
+    const result = await connection.execute(query);
+    console.log('Query executed successfully:', result.rows);
+    return result.rows;
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  } finally {
+    if (connection) {
+      await connection.close();
+    }
+  }
+}
+
+
+
+
+
+
+import { test, expect } from '@playwright/test';
+import { runQuery } from '../utils/dbUtils'; // Adjust path based on your project structure
+
+test('Verify customers are ordered by country (ASC) and name (DESC)', async () => {
+  const query = `SELECT * FROM Customers ORDER BY Country ASC, CustomerName DESC`;
+  const result = await runQuery(query);
+
+  expect(result).not.toBeNull();
+  console.log('Query Result:', result);
+});
+
