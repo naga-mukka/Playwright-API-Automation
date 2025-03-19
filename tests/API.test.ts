@@ -133,6 +133,48 @@ npx playwright test --grep "@smoke&@reg"
 
 npx playwright test --grep @smoke
 
+import { Page, Locator, expect } from '@playwright/test';
+
+// Function to check button visibility, enabled state, and text
+export async function checkButtonState(button: Locator, expectedText?: string) {
+    // Check if the button is visible
+    await expect(button).toBeVisible();
+
+    // Check if the button is enabled
+    await expect(button).toBeEnabled();
+
+    // If expected text is provided, verify button text
+    if (expectedText) {
+        await expect(button).toHaveText(expectedText);
+    }
+}
+
+
+import { Page, Locator } from '@playwright/test';
+import { checkButtonState } from '../utilities/helper';
+
+export class LoginPage {
+    readonly page: Page;
+    readonly signInBtn: Locator;
+
+    constructor(page: Page) {
+        this.page = page;
+        this.signInBtn = page.locator('[data-testid="login_page_sign-in-button_test-id"]'); // Adjust selector
+    }
+
+    // Method to check the Sign-In button state
+    async verifySignInButton() {
+        await checkButtonState(this.signInBtn, 'Sign In');
+    }
+}
+
+import { test } from '@playwright/test';
+import { LoginPage } from '../pageFactory/b2b/login.page';
+
+test('Verify Sign-In Button', async ({ page }) => {
+    const loginPage = new LoginPage(page);
+    await loginPage.verifySignInButton();
+});
 
 
 
