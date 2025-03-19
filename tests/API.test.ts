@@ -104,3 +104,36 @@ test('Run Oracle DB Query', async () => {
     test.expect(data).not.toBeNull();
     console.log('Query Result:', data);
 });
+
+
+import { addTags } from '../utilities/tagHelper';
+
+test('Verify Login Page Title', async ({ page }, testInfo) => {
+    addTags(testInfo, ['@smoke', '@reg']); // Pass multiple tags dynamically
+
+    await checkPageTitle(page, expectedHomePageTitleTxt);
+});
+
+test('Verify Login', async ({ page, loginPage }, testInfo) => {
+    addTags(testInfo, ['@smoke']); // Only tag as @smoke
+
+    await logIn(loginPage, testData.Email!, testData.Password!);
+    await wait(20000);
+});
+
+export function addTags(testInfo: any, tags: string[]) {
+    tags.forEach(tag => {
+        testInfo.annotations.push({ type: 'tag', description: tag });
+    });
+}
+
+npx playwright test --grep "@smoke|@reg"
+
+npx playwright test --grep "@smoke&@reg"
+
+npx playwright test --grep @smoke
+
+
+
+
+
