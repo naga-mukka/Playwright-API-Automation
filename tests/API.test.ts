@@ -89,3 +89,50 @@ export class CustomHelper {
     await expect(element).toHaveText(expectedText);
   }
 }
+
+
+
+
+
+
+import { Locator, Page } from '@playwright/test';
+
+export class HomePage {
+  readonly page: Page;
+  readonly myLink: Locator;
+  readonly anotherLink: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.myLink = page.locator('a#my-link');
+    this.anotherLink = page.locator('a.another');
+  }
+}
+
+
+
+import { expect, Locator } from '@playwright/test';
+
+export class CustomHelper {
+  static async verifyLinkAttributes(
+    locator: Locator,
+    expectedHref: string,
+    expectedText: string
+  ) {
+    await expect(locator).toHaveAttribute('href', expectedHref);
+    await expect(locator).toHaveText(expectedText);
+  }
+}
+
+
+import { test } from '@playwright/test';
+import { HomePage } from '../pages/home.page';
+import { CustomHelper } from '../helpers/custom.helper';
+
+test('Verify links on homepage', async ({ page }) => {
+  const homePage = new HomePage(page);
+  await page.goto('https://example.com');
+
+  await CustomHelper.verifyLinkAttributes(homePage.myLink, '/expected-path', 'Click here');
+  await CustomHelper.verifyLinkAttributes(homePage.anotherLink, '/contact', 'Contact Us');
+});
