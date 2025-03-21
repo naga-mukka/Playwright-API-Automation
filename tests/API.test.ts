@@ -179,3 +179,270 @@ test('Verify Sign-In Button', async ({ page }) => {
 
 
 
+
+
+
+
+
+
+
+import dotenv from 'dotenv';
+import { expect, test } from '../fixture/pomFixture';
+import { checkPageTitle, lazyScroll, navigateTo } from '../utilities/helpers';
+
+dotenv.config();
+
+const fs = require('fs');
+const filePath = './testdata/testdata.json'
+// Read and parse the JSON file
+const rawData = fs.readFileSync(filePath);
+const testData = JSON.parse(rawData);
+
+const expectedHomePageTitleTxt = 'Apartments, Condos and Houses for Rent in Canada | liv.rent';
+const expectedPricingPageTitleTxt = 'Landlord Pricing Plans | liv.rent';
+const expectedPostAListingPageTitleTxt = 'Landlords Create Unlimited Listings | liv.rent';
+
+const expectedAboutPageTitleTxt = 'About Us | liv.rent - Apartments & Houses for Rent Canada';
+const expectedBlogPageTitleTxt = 'Liv Rent Blog - Vancouver Apartment Rental Tips and Advice | liv.rent blog';
+const expectedPrivacyPageTitleTxt = 'Privacy Policy | liv.rent - Apartments and Houses for Rent';
+const expectedFAQPageTitleTxt = 'Renters & Landlords FAQ | liv.rent - Apartments & Homes for Rent';
+const expectedTermsPageTitleTxt = 'Terms and Conditions | liv.rent - Apartments and Houses for Rent';
+const expectedJoinUsPageTitleTxt = 'Liv.Rent Jobs | Wellfound (formerly AngelList Talent)';
+const expectedSignContractPageTitleTxt = 'Log in - Sign up | liv.rent';
+const expectedVerifySigningPageTitleTxt = 'Liv Verify';
+
+// href
+const expectedAppleStoreHrefURL = 'https://apps.apple.com/ca/app/liv-apartment-houses-rental/id1321741040';
+const expectedPlayStoreHrefURL = 'https://play.google.com/store/apps/details?id=rent.liv.ether';
+const expectedTwitterHrefURL = 'https://twitter.com/liv_rent';
+const expectedInstagramHrefURL = 'https://www.instagram.com/liv.rent/';
+const expectedPFaceBookHrefURL = 'https://www.facebook.com/liv.rent/';
+
+// Handle the new tab and verify the URL and title
+const expectedPricingUrl = '/pricing';
+const expectedPostAListingUrl = '/post-a-listing';
+const expectedAboutUrl = '/about';
+const expectedBlogUrl = 'https://liv.rent/blog/';
+const expectedPrivacyUrl = '/privacy';
+const expectedFAQUrl = '/faq';
+const expectedTermsUrl = '/terms';
+const expectedJoinUsUrl = 'https://angel.co/liv-rent/jobs';
+const expectedSignContractUrl = '/app';
+const expectedVerifySigningUrl = 'verify';
+
+// Mask CSS Selectors
+const aboutPeopleSayingMaskSelector = '.sc-ded8468b-0.hXGkDx';
+const aboutContactUsMaskSelector = '.leaflet-pane.leaflet-tile-pane';
+const blogVideoLibraryMaskSelector = '.et_pb_row.et_pb_row_19';
+
+test.beforeEach(async ({ page, homePage }) => {
+    const url = process.env.URL!;
+    await navigateTo(page, url);
+    await homePage.checkBannerAndClose();
+});
+
+test.only('Verify Home Page Title', { tag: ['@reg', '@visual'] }, async ({ page }) => {
+    await checkPageTitle(page, expectedHomePageTitleTxt);
+});
+
+test('Verify Home Page Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    // Capture the screenshot and perform the assertion
+    await lazyScroll(page);
+    const fullHomePage = await homePage.homePageScreehshotWithMaskArea();
+    expect(fullHomePage).toMatchSnapshot('HomePage.png');
+});
+
+test('Verify Header Menu Dropdown Screenshot', { tag: ['@visual'] }, async ({ homePage }) => {
+    await homePage.clickOnHeaderDropdownMenuBtn();
+    // Capture the screenshot and perform the assertion
+    const headerMenuDropdown = await homePage.headerMenuDropdownScreenshot();
+    expect(headerMenuDropdown).toMatchSnapshot('HeaderMenuDropdownScreenshot.png');
+});
+
+test('Verify Header Landlord Menu Dropdown Screenshot', { tag: ['@visual'] }, async ({ homePage }) => {
+    await homePage.clickOnHeaderLandlordDropdownMenuBtn();
+    // Capture the screenshot and perform the assertion
+    const headerLandlordMenuDropdown = await homePage.headerLandlordMenuDropdownScreenshot();
+    expect(headerLandlordMenuDropdown).toMatchSnapshot('HeaderLandlordMenuDropdownScreenshot.png');
+});
+
+test('Verify Header Renters Menu Dropdown Screenshot', { tag: ['@visual'] }, async ({ homePage }) => {
+    await homePage.clickOnHeaderRentersDropdownMenuBtn();
+    // Capture the screenshot and perform the assertion
+    const headerRentersMenuDropdown = await homePage.headerRentersMenuDropdownScreenshot();
+    expect(headerRentersMenuDropdown).toMatchSnapshot('HeaderRentersMenuDropdownScreenshot.png');
+});
+
+test('Verify Header Resources Menu Dropdown Screenshot', { tag: ['@visual'] }, async ({ homePage }) => {
+    await homePage.clickOnHeaderResourcesDropdownMenuBtn();
+    // Capture the screenshot and perform the assertion
+    const headerResourcesMenuDropdown = await homePage.headerResourcesMenuDropdownScreenshot();
+    expect(headerResourcesMenuDropdown).toMatchSnapshot('HeaderResourcesMenuDropdownScreenshot.png');
+});
+
+test('Verify Pricing Page Title and Capture Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    await homePage.checkPricingPageTitleAndURl(expectedPricingUrl, expectedPricingPageTitleTxt);
+    await lazyScroll(page);
+    // Capture the screenshot and perform the assertion
+    const fullPricingPage = await homePage.fullPageScreenshot();
+    expect(fullPricingPage).toMatchSnapshot('PricingPage.png');
+});
+
+test('Verify Post A Listing Page Screenshot', { tag: ['@visual'] }, async ({ homePage }) => {
+    await homePage.checkPostAListingPageTitleAndURl(expectedPostAListingUrl, expectedPostAListingPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingPage).toMatchSnapshot('PostAListingPage.png');
+});
+
+test('Verify Post A Listing Apartment Flow Screenshots', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    await homePage.checkPostAListingPageTitleAndURl(expectedPostAListingUrl, expectedPostAListingPageTitleTxt);
+    await homePage.clickOnPostAListingNextBtn();
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingFirstErrorPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingFirstErrorPage).toMatchSnapshot('PostAListing_PropertyTypeRequiredErrorPage.png');
+    await homePage.clickOnPostAListingApartmentRadioBtn();
+    // Capture the screenshot and perform the assertion
+    const fullPropertyTypeApartmentPage = await homePage.fullPageScreenshot();
+    expect(fullPropertyTypeApartmentPage).toMatchSnapshot('PostAListing_PropertyTypeApartmentPage.png');
+    await homePage.clickOnPostAListingNextBtn();
+    // Capture the screenshot and perform the assertion
+    const fullSpaceRentingOutApartmentPage = await homePage.fullPageScreenshot();
+    expect(fullSpaceRentingOutApartmentPage).toMatchSnapshot('PostAListing_SpaceRentingOutApartmentPage.png');
+    await homePage.clickOnPostAListingSpaceNextBtn();
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingSecondErrorPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingSecondErrorPage).toMatchSnapshot('PostAListing_SpaceRentingOutErrorPage.png');
+    await homePage.clickOnPostAListingEntireSpaceRadioBtn();
+    await homePage.clickOnPostAListingSpaceNextBtn();
+    await page.waitForTimeout(3000);
+    // Capture the screenshot and perform the assertion
+    const fullWhereIsLocatedApartmentPage = await homePage.fullPageScreenshot();
+    expect(fullWhereIsLocatedApartmentPage).toMatchSnapshot('PostAListing_WhereIsLocatedApartmentPage.png');
+    await homePage.clickOnPostAListingLocationNextBtn();
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingThirdErrorPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingThirdErrorPage).toMatchSnapshot('PostAListing_StreetNameRequiredErrorPage.png');
+    await homePage.typeIntoBuildingSearchInputField(testData.ListingAddressHint);
+    await page.waitForTimeout(3000);
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingAddressHintPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingAddressHintPage).toMatchSnapshot('PostAListing_AddressHintPage.png');
+    await page.waitForTimeout(1000);
+    await homePage.clickAndSelectFirstListingFromDowndownListBtn();
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingSelectAddressPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingSelectAddressPage).toMatchSnapshot('PostAListing_UnitNoRequiredErrorPage.png');
+    await homePage.typeEnterUnitNumberBtn(testData.ListingUnit);
+    await homePage.clickOnPostAListingLocationNextBtn();
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingCreateAnAccountPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingCreateAnAccountPage).toMatchSnapshot('PostAListing_CreateAnAccountPage.png');
+    await homePage.clickCreateAccountContinueBtn();
+    // Capture the screenshot and perform the assertion
+    const fullPostAListingCreateAccountErrorsPage = await homePage.fullPageScreenshot();
+    expect(fullPostAListingCreateAccountErrorsPage).toMatchSnapshot('PostAListing_CreateAccountErrorsPage.png');
+});
+
+test('Verify About Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    await homePage.checkAboutPageTitleAndURl(page, expectedAboutUrl, expectedAboutPageTitleTxt);
+    await lazyScroll(page);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await page.screenshot({
+        fullPage: true, mask: [
+            page.locator(aboutPeopleSayingMaskSelector),
+            page.locator(aboutContactUsMaskSelector)
+        ]
+    });
+    expect(fullScreeningPage).toMatchSnapshot('AboutPage.png');
+});
+
+test.skip('Verify Blog Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    await homePage.checkBlogPageTitleAndURl(page, expectedBlogUrl, expectedBlogPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await page.screenshot({
+        fullPage: true, mask: [
+            page.locator(blogVideoLibraryMaskSelector)
+        ]
+    });
+});
+
+test('Verify Blog Page href', { tag: ['@visual'] }, async ({ homePage }) => {
+    // Note: This will only capture up to the 19.13 point because the image is too large.
+    console.log('As this Blog Page needs some additional permission so checking only the href');
+    const hasFaceBookHref = await homePage.doesBlogBtnHaveHref(expectedBlogUrl);
+    expect(hasFaceBookHref).toBeTruthy();
+});
+
+test('Verify Privacy Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    await homePage.checkPrivacyPageTitleAndURl(page, expectedPrivacyUrl, expectedPrivacyPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await page.screenshot({
+        fullPage: true, mask: [
+            page.locator(blogVideoLibraryMaskSelector)
+        ]
+    });
+    expect(fullScreeningPage).toMatchSnapshot('PrivacyPage.png');
+});
+
+test('Verify FAQ Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    await homePage.checkFAQPageTitleAndURl(page, expectedFAQUrl, expectedFAQPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await page.screenshot({ fullPage: true });
+    expect(fullScreeningPage).toMatchSnapshot('FAQPage.png');
+});
+
+test('Verify Terms Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    // Note: This will only capture up to the 19.13 point because the image is too large.
+    console.log('Terms Page - This will only capture up to the 19.13 point because the image is too large');
+    await homePage.checkTermsPageTitleAndURl(page, expectedTermsUrl, expectedTermsPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await page.screenshot({ fullPage: true });
+    expect(fullScreeningPage).toMatchSnapshot('TermsPage.png');
+});
+
+test.skip('Verify Join Us Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    await homePage.checkJoinUsPageTitleAndURl(page, expectedJoinUsUrl, expectedJoinUsPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await page.screenshot({ fullPage: true });
+    expect(fullScreeningPage).toMatchSnapshot('JoinUsPage.png');
+});
+
+test('Verify Join Us Page href', { tag: ['@visual'] }, async ({ page, homePage }) => {
+    // Note: This will only capture up to the 19.13 point because the image is too large.
+    console.log('As this Join Us needs some additional permission so checking only the href');
+    const hasFaceBookHref = await homePage.doesjoinUsBtnHaveHref(expectedJoinUsUrl);
+    expect(hasFaceBookHref).toBeTruthy();
+});
+
+test('Verify Sign Contract Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, context, homePage }) => {
+    const newPage = await homePage.checkSignContractPageTitleAndURl(page, context, expectedSignContractUrl, expectedSignContractPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await newPage.screenshot({ fullPage: true });
+    expect(fullScreeningPage).toMatchSnapshot('SignContractPage.png');
+});
+
+test('Verify Singing Page Title And Screenshot', { tag: ['@visual'] }, async ({ page, context, homePage }) => {
+    const newPage = await homePage.checkVerifySignIngPageTitleAndURl(page, context, expectedVerifySigningUrl, expectedVerifySigningPageTitleTxt);
+    // Capture the screenshot and perform the assertion
+    const fullScreeningPage = await newPage.screenshot({ fullPage: true });
+    expect(fullScreeningPage).toMatchSnapshot('VerifySigningPage.png');
+});
+
+test('Verify Apple Store and Google Play Store links has href', { tag: ['@reg'] }, async ({ homePage }) => {
+    const hasAppleStoreHref = await homePage.doesAppleAndPlayStoreBtnHaveHref(expectedAppleStoreHrefURL);
+    const hasPlayStoreHref = await homePage.doesAppleAndPlayStoreBtnHaveHref(expectedPlayStoreHrefURL);
+
+    expect(hasAppleStoreHref).toBeTruthy();
+    expect(hasPlayStoreHref).toBeTruthy();
+});
+
+test('Verify Social Media links has href', { tag: ['@reg'] }, async ({ homePage }) => {
+    const hasTwitterHref = await homePage.doesSocialMediaBtnHaveHref(expectedTwitterHrefURL);
+    const hasInstagramHref = await homePage.doesSocialMediaBtnHaveHref(expectedInstagramHrefURL);
+    const hasFaceBookHref = await homePage.doesSocialMediaBtnHaveHref(expectedPFaceBookHrefURL);
+
+    expect(hasTwitterHref).toBeTruthy();
+    expect(hasInstagramHref).toBeTruthy();
+    expect(hasFaceBookHref).toBeTruthy();
+});
