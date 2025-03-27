@@ -699,3 +699,34 @@ test('Verify Social Media links has href', { tag: ['@reg'] }, async ({ homePage 
     expect(hasInstagramHref).toBeTruthy();
     expect(hasFaceBookHref).toBeTruthy();
 });
+
+
+
+
+
+
+
+
+
+
+
+// Function to handle new tab and perform actions on it
+export async function handleUrlAndTitleOfNewTab(page: Page, context: BrowserContext, expectedUrl: string, expectedTitle: string, clickLocator: Locator) {
+    const [newPage] = await Promise.all([
+        context.waitForEvent('page'),
+        clickLocator.click()
+    ]);
+
+    await newPage.waitForLoadState();
+    await page.waitForTimeout(6000);
+
+    const newPageUrl = newPage.url();
+    // console.log('Print the New Tab URL: ' + newPageUrl);
+    const newPageTitle = await newPage.title();
+    // console.log('Print the New Tab Title: ' + newPageTitle);
+
+    expect(newPageUrl).toContain(expectedUrl);
+    expect(newPageTitle).toContain(expectedTitle);
+
+    return newPage;
+}
