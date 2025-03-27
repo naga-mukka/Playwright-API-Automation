@@ -70,72 +70,43 @@ export class CustomHelper {
    * @param expectedHref - Expected href value
    * @param expectedText - Expected inner text
    */
-  static async verifyLinkAttributes(
-    locator: Locator | string,
-    expectedHref: string,
-    expectedText: string,
-    page?: Page // optional if using string selector
-  ) {
-    let element: Locator;
-
-    if (typeof locator === 'string') {
-      if (!page) throw new Error('Page object is required when passing a selector string.');
-      element = page.locator(locator);
-    } else {
-      element = locator;
-    }
-
-    await expect(element).toHaveAttribute('href', expectedHref);
-    await expect(element).toHaveText(expectedText);
-  }
-}
-
-
+  
 
 
 
 import { BrowserContext, Page } from '@playwright/test';
 
-export class TabHelper {
-  static async waitForNewTab(context: BrowserContext, trigger: Promise<void>): Promise<Page> {
-    const [newPage] = await Promise.all([
-      context.waitForEvent('page'),
-      trigger
-    ]);
-    await newPage.waitForLoadState('domcontentloaded');
-    return newPage;
-  }
+export async function tabHandler(
+  context: BrowserContext,
+  trigger: Promise<void>,
+  waitState: 'load' | 'domcontentloaded' | 'networkidle' = 'domcontentloaded'
+): Promise<Page> {
+  const [newTab] = await Promise.all([
+    context.waitForEvent('page'),
+    trigger
+  ]);
+  await newTab.waitForLoadState(waitState);
+  return newTab;
 }
 
-import { test, expect } from '@playwright/test';
-import { TabHelper } from './helpers'; // Adjust the path accordingly
 
-test('Handle California Privacy Rights in new tab', async ({ context, page }) => {
+import { test, expect } from '@playwright/test';
+import { tabHandler } from './tab-handler'; // adjust the path accordingly
+
+test('Verify California Privacy Rights page content', async ({ context, page }) => {
   await page.goto('https://stg-npd.wholesale.lululemon.com');
 
-  // Use the helper to handle the new tab
-  const newTab = await TabHelper.waitForNewTab(context, page.click('text=California Privacy Rights'));
+  // Call the tabHandler to manage new tab opening
+  const newTab = await tabHandler(context, page.click('text=California Privacy Rights'));
 
-  // Handle location confirmation modal
+  // Handle location popup
   const shopUS = newTab.locator('button', { hasText: 'Shop in the United States' });
   if (await shopUS.isVisible()) {
     await shopUS.click();
   }
 
-  // Check for expected privacy policy content
+  // Assert privacy content is visible
   await expect(newTab.locator('text=Your Privacy: Overview')).toBeVisible();
 });
 
-static async waitForNewTab(
-  context: BrowserContext,
-  trigger: Promise<void>,
-  timeout: number = 10000
-): Promise<Page> {
-  const [newPage] = await Promise.all([
-    context.waitForEvent('page', { timeout }),
-    trigger
-  ]);
-  console.log(`New tab opened: ${newPage.url()}`);
-  await newPage.waitForLoadState('domcontentloaded');
-  return newPage;
-}
+
