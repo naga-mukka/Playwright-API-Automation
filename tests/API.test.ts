@@ -110,3 +110,39 @@ test('Verify California Privacy Rights page content', async ({ context, page }) 
 });
 
 
+import { Page, BrowserContext } from '@playwright/test';
+import { tabHandler } from '../helpers/tab-helper';
+
+export class HomePage {
+  constructor(private page: Page, private context: BrowserContext) {}
+
+  async openPrivacyPolicyInNewTab(linkLocator: string): Promise<Page> {
+    return await tabHandler(this.context, this.page.click(linkLocator));
+  }
+
+  async selectUSRegion(tab: Page) {
+    const usButton = tab.locator('button', { hasText: 'Shop in the United States' });
+    if (await usButton.isVisible()) {
+      await usButton.click();
+    }
+  }
+}
+
+import { test, expect } from '@playwright/test';
+import { HomePage } from '../pages/home.page';
+
+test('Verify US privacy policy after location confirmation', async ({ page, context }) => {
+  const home = new HomePage(page, context);
+
+  await page.goto('https://stg-npd.wholesale.lululemon.com');
+
+  // Open new tab using custom helper via page object
+  const newTab = await home.openPrivacyPolicyInNewTab('text=California Privacy Rights');
+
+  // Select US region if popup shows up
+  await home.selectUSRegion(newTab);
+
+  // Assertion: Check the policy heading is visible
+  await expect(newTab.locator('text=Your Privacy: Overview')).toBeVisible();
+});
+
