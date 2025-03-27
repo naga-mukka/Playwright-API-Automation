@@ -94,45 +94,48 @@ export class CustomHelper {
 
 
 
+import { BrowserContext, Page } from '@playwright/test';
 
-import { Locator, Page } from '@playwright/test';
-
-export class HomePage {
-  readonly page: Page;
-  readonly myLink: Locator;
-  readonly anotherLink: Locator;
-
-  constructor(page: Page) {
-    this.page = page;
-    this.myLink = page.locator('a#my-link');
-    this.anotherLink = page.locator('a.another');
+export class TabHelper {
+  static async waitForNewTab(context: BrowserContext, trigger: Promise<void>): Promise<Page> {
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      trigger
+    ]);
+    await newPage.waitForLoadState('domcontentloaded');
+    return newPage;
   }
 }
 
+import { test, expect } from '@playwright/test';
+import { TabHelper } from './helpers'; // Adjust the path accordingly
 
+test('Handle California Privacy Rights in new tab', async ({ context, page }) => {
+  await page.goto('https://stg-npd.wholesale.lululemon.com');
 
-import { expect, Locator } from '@playwright/test';
+  // Use the helper to handle the new tab
+  const newTab = await TabHelper.waitForNewTab(context, page.click('text=California Privacy Rights'));
 
-export class CustomHelper {
-  static async verifyLinkAttributes(
-    locator: Locator,
-    expectedHref: string,
-    expectedText: string
-  ) {
-    await expect(locator).toHaveAttribute('href', expectedHref);
-    await expect(locator).toHaveText(expectedText);
+  // Handle location confirmation modal
+  const shopUS = newTab.locator('button', { hasText: 'Shop in the United States' });
+  if (await shopUS.isVisible()) {
+    await shopUS.click();
   }
-}
 
-
-import { test } from '@playwright/test';
-import { HomePage } from '../pages/home.page';
-import { CustomHelper } from '../helpers/custom.helper';
-
-test('Verify links on homepage', async ({ page }) => {
-  const homePage = new HomePage(page);
-  await page.goto('https://example.com');
-
-  await CustomHelper.verifyLinkAttributes(homePage.myLink, '/expected-path', 'Click here');
-  await CustomHelper.verifyLinkAttributes(homePage.anotherLink, '/contact', 'Contact Us');
+  // Check for expected privacy policy content
+  await expect(newTab.locator('text=Your Privacy: Overview')).toBeVisible();
 });
+
+static async waitForNewTab(
+  context: BrowserContext,
+  trigger: Promise<void>,
+  timeout: number = 10000
+): Promise<Page> {
+  const [newPage] = await Promise.all([
+    context.waitForEvent('page', { timeout }),
+    trigger
+  ]);
+  console.log(`New tab opened: ${newPage.url()}`);
+  await newPage.waitForLoadState('domcontentloaded');
+  return newPage;
+}
