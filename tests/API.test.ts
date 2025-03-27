@@ -61,88 +61,381 @@ test.describe('Cruises API Tests', {}, () => {
 
 
 
-import { expect, Locator, Page } from '@playwright/test';
-
-export class CustomHelper {
-  /**
-   * Checks the href and inner text of a link
-   * @param locator - Playwright Locator object or a selector string
-   * @param expectedHref - Expected href value
-   * @param expectedText - Expected inner text
-   */
-  
-
-
-
-import { BrowserContext, Page } from '@playwright/test';
-
-export async function tabHandler(
-  context: BrowserContext,
-  trigger: Promise<void>,
-  waitState: 'load' | 'domcontentloaded' | 'networkidle' = 'domcontentloaded'
-): Promise<Page> {
-  const [newTab] = await Promise.all([
-    context.waitForEvent('page'),
-    trigger
-  ]);
-  await newTab.waitForLoadState(waitState);
-  return newTab;
-}
-
-
-import { test, expect } from '@playwright/test';
-import { tabHandler } from './tab-handler'; // adjust the path accordingly
-
-test('Verify California Privacy Rights page content', async ({ context, page }) => {
-  await page.goto('https://stg-npd.wholesale.lululemon.com');
-
-  // Call the tabHandler to manage new tab opening
-  const newTab = await tabHandler(context, page.click('text=California Privacy Rights'));
-
-  // Handle location popup
-  const shopUS = newTab.locator('button', { hasText: 'Shop in the United States' });
-  if (await shopUS.isVisible()) {
-    await shopUS.click();
-  }
-
-  // Assert privacy content is visible
-  await expect(newTab.locator('text=Your Privacy: Overview')).toBeVisible();
-});
-
-
-import { Page, BrowserContext } from '@playwright/test';
-import { tabHandler } from '../helpers/tab-helper';
+import { BrowserContext, expect, Locator, Page } from '@playwright/test';
+import { handleUrlAndTitleOfNewTab, handleUrlAndTitleOnSameTab } from '../utilities/helpers';
 
 export class HomePage {
-  constructor(private page: Page, private context: BrowserContext) {}
+  readonly page: Page;
+  readonly menuBtn: Locator;
+  readonly menuSignUpBtn: Locator;
+  readonly menulogInBtn: Locator;
+  readonly menulogOutBtn: Locator;
+  readonly menuProfileBtn: Locator;
+  readonly landlordDropdownMenuBtn: Locator;
+  readonly rentersDropdownMenuBtn: Locator;
+  readonly resourcesDropdownMenuBtn: Locator;
+  readonly pricingMenuBtn: Locator;
+  readonly postAListingMenuBtn: Locator;
+  readonly postAListingNextBtn: Locator;
+  readonly postAListingSpaceNextBtn: Locator;
+  readonly postAListingLocationNextBtn: Locator;
+  readonly postAListingApartmentRadioBtn: Locator;
+  readonly postAListingHomeRadioBtn: Locator;
+  readonly postAListingTownhouseRadioBtn: Locator;
+  readonly postAListingEntireRadioBtn: Locator;
+  readonly postAListingPartialRadioBtn: Locator;
+  readonly postAListingRoomRadioBtn: Locator;
+  readonly postAListingBuildingSearchInputBtn: Locator;
+  readonly postAListingSelectFirstListingBtn: Locator;
+  readonly postAListingEnterUnitNumberBtn: Locator;
+  readonly postAListingCreateAccountContinueBtn: Locator;
 
-  async openPrivacyPolicyInNewTab(linkLocator: string): Promise<Page> {
-    return await tabHandler(this.context, this.page.click(linkLocator));
+  // Footer
+  readonly aboutFooterBtn: Locator;
+  readonly blogFooterBtn: Locator;
+  readonly privacyFooterBtn: Locator;
+  readonly fqaFooterBtn: Locator;
+  readonly termsFooterBtn: Locator;
+  readonly joinUsFooterBtn: Locator;
+  readonly signContractFooterBtn: Locator;
+  readonly verifySigningFooterBtn: Locator;
+  readonly appleAndPlayStoreFooterBtn: Locator;
+  readonly socialMediaFooterBtn: Locator;
+
+  // Visual Testing Locators
+  readonly signUpOrLogInPopUp: Locator;
+  readonly chatBotSectionSelector: Locator;
+  readonly companySectionSelector: Locator;
+  readonly headerMenuDropdownSectionSelector: Locator;
+  readonly landlordDropdownMenuSection: Locator;
+  readonly rentersDropdownMenuSection: Locator;
+  readonly resourcesDropdownMenuSection: Locator;
+
+  constructor(page: Page) {
+    this.page = page;
+    this.menuBtn = page.locator('[id="btn-menu"]');
+    this.menuSignUpBtn = page.locator('[id="menu-account-signup"]');
+    this.menulogInBtn = page.locator('[id="menu-account-login"]');
+    this.menulogOutBtn = page.locator('[id="menu-manage-logged-logout"]');
+    this.menuProfileBtn = page.locator('[id="menu-account-logged-profile"]');
+    this.landlordDropdownMenuBtn = page.locator('[id="header-landlords-main"]');
+    this.rentersDropdownMenuBtn = page.locator('[id="header-renters-main"]');
+    this.resourcesDropdownMenuBtn = page.locator('[id="header-resources-main"]');
+    this.pricingMenuBtn = page.locator('[id="menu-pricing-link"]');
+    this.postAListingMenuBtn = page.locator('[id="btn-post-listing"]');
+    this.postAListingNextBtn = page.locator('[id="landlord-postlisting-essentials-property-next"]');
+    this.postAListingSpaceNextBtn = page.locator('[id="landlord-postlisting-essentials-space-next"]');
+    this.postAListingLocationNextBtn = page.locator('[id="landlord-postlisting-essentials-location-next"]');
+    this.postAListingApartmentRadioBtn = page.locator('[id="condo"]');
+    this.postAListingHomeRadioBtn = page.locator('[id="house"]');
+    this.postAListingTownhouseRadioBtn = page.locator('[id="townhouse"]');
+    this.postAListingEntireRadioBtn = page.locator('[id="entire"]');
+    this.postAListingPartialRadioBtn = page.locator('[id="partial"]');
+    this.postAListingRoomRadioBtn = page.locator('[id="room"]');
+    this.postAListingBuildingSearchInputBtn = page.locator('[id="building-search-input"]');
+    this.postAListingSelectFirstListingBtn = page.locator('[id="react-select-2-option-0"]');
+    this.postAListingEnterUnitNumberBtn = page.locator('[id="suite"]');
+    this.postAListingCreateAccountContinueBtn = page.locator('[id="landlord-postlisting-essentials-createaccount-continue"]');
+
+    // Footer
+    this.aboutFooterBtn = page.locator("//a[normalize-space()='About']");
+    this.blogFooterBtn = page.locator("//a[normalize-space()='Blog']");
+    this.privacyFooterBtn = page.locator("//a[normalize-space()='Privacy']");
+    this.fqaFooterBtn = page.locator("//a[normalize-space()='FAQ']");
+    this.termsFooterBtn = page.locator("//a[normalize-space()='Terms']");
+    this.joinUsFooterBtn = page.locator("(//a[normalize-space()='Join Us'])[1]");
+    this.signContractFooterBtn = page.locator("//a[normalize-space()='Sign Contract']");
+    this.verifySigningFooterBtn = page.locator("//a[normalize-space()='Verify Signing']");
+    this.appleAndPlayStoreFooterBtn = page.locator(".sc-8517d321-10.loKKdF > a");
+    this.socialMediaFooterBtn = page.locator(".sc-8517d321-12.eSxmiC > a");
+
+    // Visual Testing Constructors
+    this.signUpOrLogInPopUp = page.locator(".sc-6a617a92-0 > ._17j34wv0");
+    this.chatBotSectionSelector = page.locator(".cc-157aw.cc-l22u7");
+    this.headerMenuDropdownSectionSelector = page.locator('#header-menu-popper > div');
+    this.landlordDropdownMenuSection = page.locator('.sc-ec94aa0a-15');
+    this.rentersDropdownMenuSection = page.locator('.sc-ec94aa0a-3');
+    this.resourcesDropdownMenuSection = page.locator('.sc-ec94aa0a-15');
+
+    //Mock CSS Selectors
+    this.companySectionSelector = page.locator('.sc-e804c457-2.jDIoji');
   }
 
-  async selectUSRegion(tab: Page) {
-    const usButton = tab.locator('button', { hasText: 'Shop in the United States' });
-    if (await usButton.isVisible()) {
-      await usButton.click();
+  async goto() {
+    await this.page.goto(process.env.URL!);
+  }
+
+  async checkBannerAndClose() {
+    const giveawayText = this.page.getByText('🎉 GIVEAWAY 🎉 We\'re giving $');
+    const isVisible = await giveawayText.isVisible();
+
+    if (isVisible) {
+      await this.page.getByLabel('close giveaway banner').getByRole('button').click({ force: true });
     }
+  }
+
+  async checkPageTitle(expectedTitle: string) {
+    await expect(this.page).toHaveTitle(expectedTitle);
+  }
+
+  async clickOnHeaderDropdownMenuBtn() {
+    await this.menuBtn.isVisible();
+    await this.menuBtn.click({ force: true });
+  }
+
+  async clickOnHeaderLandlordDropdownMenuBtn() {
+    await this.landlordDropdownMenuBtn.click({ force: true });
+  }
+
+  async clickOnHeaderRentersDropdownMenuBtn() {
+    await this.rentersDropdownMenuBtn.click({ force: true });
+  }
+
+  async clickOnHeaderResourcesDropdownMenuBtn() {
+    await this.resourcesDropdownMenuBtn.click({ force: true });
+  }
+
+  async clickOnPricingMenuBtn() {
+    await this.pricingMenuBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingMenuBtn() {
+    await this.postAListingMenuBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingNextBtn() {
+    await this.postAListingNextBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingApartmentRadioBtn() {
+    await this.postAListingApartmentRadioBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingHomeRadioBtn() {
+    await this.postAListingHomeRadioBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingTownhouseRadioBtn() {
+    await this.postAListingTownhouseRadioBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingEntireSpaceRadioBtn() {
+    await this.postAListingEntireRadioBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingPartialSpaceRadioBtn() {
+    await this.postAListingPartialRadioBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingRoomRadioBtn() {
+    await this.postAListingRoomRadioBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingSpaceNextBtn() {
+    await this.postAListingSpaceNextBtn.click({ force: true });
+  }
+
+  async clickOnPostAListingLocationNextBtn() {
+    await this.postAListingLocationNextBtn.click({ force: true });
+  }
+
+  async typeIntoBuildingSearchInputField(AddressTxt: string) {
+    await this.postAListingBuildingSearchInputBtn.fill(AddressTxt);
+  }
+
+  async clickAndSelectFirstListingFromDowndownListBtn() {
+    await this.postAListingSelectFirstListingBtn.click({ force: true });
+  }
+
+  async typeEnterUnitNumberBtn(UnitNo: string) {
+    await this.postAListingEnterUnitNumberBtn.fill(UnitNo);
+  }
+
+  async clickCreateAccountContinueBtn() {
+    await this.postAListingCreateAccountContinueBtn.click({ force: true });
+  }
+
+  async clickOnHeaderDropdownMenuSignUpBtn() {
+    await this.menuSignUpBtn.click({ force: true });
+  }
+
+  async clickOnHeaderDropdownMenuLogInBtn() {
+    await this.menulogInBtn.isVisible();
+    await this.menulogInBtn.click({ force: true });
+  }
+
+  async clickOnHeaderDropdownMenuLogOutBtn() {
+    await this.menulogOutBtn.isVisible();
+    await this.menulogOutBtn.click({ force: true });
+  }
+
+  async clickHeaderDropdownMenuLogOutBtnVisibility() {
+    await this.menulogOutBtn.isVisible();
+  }
+
+  async clickOnHeaderDropdownMenuProfileBtn() {
+    await this.menuBtn.isVisible();
+    await this.menuProfileBtn.click({ force: true });
+  }
+
+  async checkPricingPageTitleAndURl(expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.pricingMenuBtn; // Use the locator from the constructor
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async checkPostAListingPageTitleAndURl(expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.postAListingMenuBtn; // Use the locator from the constructor
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  // Visual Testing Actions
+
+  async isChatbotVisible() {
+    return await this.chatBotSectionSelector.isVisible();
+  }
+
+  async homePageScreehshotWithMaskArea() {
+    return await this.page.screenshot({ fullPage: true, mask: [this.companySectionSelector] });
+  }
+
+  async headerMenuDropdownScreenshot(): Promise<Buffer> {
+    await this.headerMenuDropdownSectionSelector.waitFor({ state: 'visible' });
+    return await this.headerMenuDropdownSectionSelector.screenshot();
+  }
+
+  async headerLandlordMenuDropdownScreenshot(): Promise<Buffer> {
+    await this.landlordDropdownMenuSection.waitFor({ state: 'visible' });
+    return await this.landlordDropdownMenuSection.screenshot();
+  }
+
+  async headerRentersMenuDropdownScreenshot(): Promise<Buffer> {
+    await this.rentersDropdownMenuSection.waitFor({ state: 'visible' });
+    return await this.rentersDropdownMenuSection.screenshot();
+  }
+
+  async headerResourcesMenuDropdownScreenshot(): Promise<Buffer> {
+    await this.resourcesDropdownMenuSection.waitFor({ state: 'visible' });
+    return await this.resourcesDropdownMenuSection.screenshot();
+  }
+
+  async signUpOrLoginPopUpPageScreenshot(): Promise<Buffer> {
+    return await this.signUpOrLogInPopUp.screenshot();
+  }
+
+  async fullPageScreenshot() {
+    return await this.page.screenshot({ fullPage: true });
+  }
+
+  async checkAboutPageTitleAndURl(page: Page, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.aboutFooterBtn; // Use the locator from the constructor
+    await page.waitForTimeout(3000);
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async checkBlogPageTitleAndURl(page: Page, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.blogFooterBtn; // Use the locator from the constructor
+    await page.waitForTimeout(3000);
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async getBlogBtnHrefAttr() {
+    return await this.blogFooterBtn.evaluateAll(elements =>
+      elements.map(element => element.getAttribute('href'))
+    );
+  }
+
+  async doesBlogBtnHaveHref(hrefValue: string) {
+    const hrefs = await this.getBlogBtnHrefAttr();
+    return hrefs.includes(hrefValue);
+  }
+
+  async checkPrivacyPageTitleAndURl(page: Page, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.privacyFooterBtn; // Use the locator from the constructor
+    await page.waitForTimeout(3000);
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async checkFAQPageTitleAndURl(page: Page, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.fqaFooterBtn; // Use the locator from the constructor
+    await page.waitForTimeout(3000);
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async checkTermsPageTitleAndURl(page: Page, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.termsFooterBtn; // Use the locator from the constructor
+    await page.waitForTimeout(3000);
+    await this.aboutFooterBtn.scrollIntoViewIfNeeded();
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async getJoinUsBtnHrefAttr() {
+    return await this.joinUsFooterBtn.evaluateAll(elements =>
+      elements.map(element => element.getAttribute('href'))
+    );
+  }
+
+  async doesjoinUsBtnHaveHref(hrefValue: string) {
+    const hrefs = await this.getJoinUsBtnHrefAttr();
+    return hrefs.includes(hrefValue);
+  }
+
+  async checkJoinUsPageTitleAndURl(page: Page, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.joinUsFooterBtn; // Use the locator from the constructor
+    await page.waitForTimeout(3000);
+    const newPage = await handleUrlAndTitleOnSameTab(this.page, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async checkSignContractPageTitleAndURl(page: Page, context: BrowserContext, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.signContractFooterBtn; // Use the locator from the constructor
+    const newPage = await handleUrlAndTitleOfNewTab(this.page, context, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async checkVerifySignIngPageTitleAndURl(page: Page, context: BrowserContext, expectedUrl: string, expectedTitle: string) {
+    const clickLocator = this.verifySigningFooterBtn; // Use the locator from the constructor
+    const newPage = await handleUrlAndTitleOfNewTab(this.page, context, expectedUrl, expectedTitle, clickLocator);
+    return newPage;
+  }
+
+  async getAppleAndPlayStoreBtnHrefAttr() {
+    return await this.appleAndPlayStoreFooterBtn.evaluateAll(elements =>
+      elements.map(element => element.getAttribute('href'))
+    );
+  }
+
+  async doesAppleAndPlayStoreBtnHaveHref(hrefValue: string) {
+    const hrefs = await this.getAppleAndPlayStoreBtnHrefAttr();
+    return hrefs.includes(hrefValue);
+  }
+
+  async getSocialMediaBtnHrefAttr() {
+    return await this.socialMediaFooterBtn.evaluateAll(elements =>
+      elements.map(element => element.getAttribute('href'))
+    );
+  }
+
+  async doesSocialMediaBtnHaveHref(hrefValue: string) {
+    const hrefs = await this.getSocialMediaBtnHrefAttr();
+    return hrefs.includes(hrefValue);
   }
 }
 
-import { test, expect } from '@playwright/test';
-import { HomePage } from '../pages/home.page';
 
-test('Verify US privacy policy after location confirmation', async ({ page, context }) => {
-  const home = new HomePage(page, context);
 
-  await page.goto('https://stg-npd.wholesale.lululemon.com');
 
-  // Open new tab using custom helper via page object
-  const newTab = await home.openPrivacyPolicyInNewTab('text=California Privacy Rights');
 
-  // Select US region if popup shows up
-  await home.selectUSRegion(newTab);
 
-  // Assertion: Check the policy heading is visible
-  await expect(newTab.locator('text=Your Privacy: Overview')).toBeVisible();
-});
+
+
+
+
+
 
